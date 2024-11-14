@@ -2,6 +2,8 @@ package mc.minera.plugins.module;
 
 import mc.minera.plugins.KitsModule;
 import mc.minera.plugins.KitsPlugin;
+import mc.minera.plugins.common.PermissionWrapper;
+import org.bukkit.command.Command;
 import org.bukkit.configuration.Configuration;
 
 import java.util.Objects;
@@ -32,5 +34,15 @@ public class SettingsModule implements KitsModule {
 
     public String getLanguage() {
         return config().getString("lang");
+    }
+
+    /* ---- Permissions ---- */
+
+    public PermissionWrapper getCommandPermission(Command cmd) {
+        return new PermissionWrapper("kits.command." + cmd.getName().toLowerCase());
+    }
+
+    public PermissionWrapper getCommandPermission(String cmd) {
+        return new PermissionWrapper("kits.command." + cmd);
     }
 }

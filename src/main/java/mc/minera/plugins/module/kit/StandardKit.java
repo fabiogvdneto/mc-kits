@@ -67,14 +67,14 @@ public class StandardKit implements Kit {
 
     @Override
     public KitUnit redeemOrThrow(UUID recipient) throws KitCooldownException {
-        KitUnit redeemed = units.get(recipient);
+        KitUnit unit = units.get(recipient);
 
-        if (redeemed != null && !redeemed.isDisposable())
-            throw new KitCooldownException(redeemed.whenDisposable());
+        if (unit != null && !unit.isDisposable())
+            throw new KitCooldownException(unit);
 
-        redeemed = new StandardUnit(this, recipient);
-        units.put(recipient, redeemed);
-        return redeemed;
+        unit = new StandardUnit(this, recipient);
+        units.put(recipient, unit);
+        return unit;
     }
 
     @Override

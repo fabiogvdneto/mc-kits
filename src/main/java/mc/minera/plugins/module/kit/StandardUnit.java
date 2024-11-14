@@ -54,17 +54,23 @@ public class StandardUnit implements KitUnit {
     }
 
     @Override
+    public boolean isEmpty() {
+        return leftovers.length == 0;
+    }
+
+    @Override
     public Collection<ItemStack> getLeftovers() {
         return Arrays.asList(leftovers);
     }
 
     @Override
-    public void push() {
+    public int collect() throws PlayerNotFoundException{
         Player player = Bukkit.getPlayer(recipient);
 
         if (player == null)
             throw new PlayerNotFoundException();
 
         this.leftovers = player.getInventory().addItem(leftovers).values().toArray(ItemStack[]::new);
+        return leftovers.length;
     }
 }

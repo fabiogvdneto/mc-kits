@@ -9,7 +9,7 @@ public interface KitManager {
 
     Kit get(String name) throws KitNotFoundException;
 
-    void delete(String name) throws KitNotFoundException;
+    Kit delete(String name) throws KitNotFoundException;
 
     boolean contains(String name);
 

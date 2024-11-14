@@ -36,11 +36,13 @@ public class KitModule implements KitManager, KitsModule {
     }
 
     @Override
-    public void delete(String name) throws KitNotFoundException {
+    public Kit delete(String name) throws KitNotFoundException {
         Kit kit = kitByName.remove(name.toLowerCase());
 
         if (kit == null)
             throw new KitNotFoundException();
+
+        return kit;
     }
 
     @Override

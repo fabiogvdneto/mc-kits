@@ -19,8 +19,24 @@ public interface KitUnit {
 
     boolean isDisposable();
 
+    /**
+     *
+     * @return true if the kit has no leftovers, false otherwise
+     */
+    boolean isEmpty();
+
+    /**
+     *
+     * @return the items that could not be collected by the player
+     */
     Collection<ItemStack> getLeftovers();
 
-    void push() throws PlayerNotFoundException;
+    /**
+     * Collect the items from this kit unit,
+     * keeping those that could not fit in the player's inventory.
+     * @return the number of items that could not be collected
+     * @throws PlayerNotFoundException if the player is not online
+     */
+    int collect() throws PlayerNotFoundException;
 
 }
