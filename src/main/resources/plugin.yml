@@ -1,0 +1,7 @@
+main: "mc.minera.plugins.KitsPlugin"
+name: "CursedKits"
+version: "0.1"
+commands:
+  createkit: {}
+  deletekit: {}
+  kit: {}

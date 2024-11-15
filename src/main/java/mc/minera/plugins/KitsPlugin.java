@@ -1,5 +1,9 @@
 package mc.minera.plugins;
 
+import mc.minera.plugins.command.CreatekitCommand;
+import mc.minera.plugins.command.DeletekitCommand;
+import mc.minera.plugins.command.KitCommand;
+import mc.minera.plugins.model.KitManager;
 import mc.minera.plugins.module.SettingsModule;
 import mc.minera.plugins.module.MessagesModule;
 import mc.minera.plugins.module.kit.KitModule;
@@ -16,6 +20,14 @@ public class KitsPlugin extends JavaPlugin {
         settings.enable();
         messages.enable();
         kits.enable();
+
+        registerCommands();
+    }
+
+    private void registerCommands() {
+        new CreatekitCommand(this).inject("createkit");
+        new DeletekitCommand(this).inject("deletekit");
+        new KitCommand(this).inject("kit");
     }
 
     @Override
@@ -33,7 +45,7 @@ public class KitsPlugin extends JavaPlugin {
         return messages;
     }
 
-    public KitModule getKits() {
+    public KitManager getKits() {
         return kits;
     }
 }

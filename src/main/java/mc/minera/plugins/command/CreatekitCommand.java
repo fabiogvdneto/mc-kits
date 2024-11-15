@@ -33,7 +33,6 @@ public class CreatekitCommand extends CommandHandler<KitsPlugin> {
 
             ItemStack[] contents = Arrays.stream(player.getInventory().getContents())
                     .filter(Objects::nonNull)
-                    .filter(item -> !item.getType().isAir())
                     .toArray(ItemStack[]::new);
 
             kit.setContents(contents);

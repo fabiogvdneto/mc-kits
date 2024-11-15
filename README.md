@@ -26,3 +26,4 @@ of items (kits) that can then be redeemed by regular players.
 |---------------------|---------------------------------|
 | kits.admin          | Grant all advanced permissions. |
 | kits.command.<name> | Execute `/<name>`.              |
+| kits.kit.<name>     | Redeem kit <name>.              |

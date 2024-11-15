@@ -43,6 +43,10 @@ public class SettingsModule implements KitsModule {
     }
 
     public PermissionWrapper getCommandPermission(String cmd) {
-        return new PermissionWrapper("kits.command." + cmd);
+        return new PermissionWrapper("kits.command." + cmd.toLowerCase());
+    }
+
+    public PermissionWrapper getKitPermission(String kitName) {
+        return new PermissionWrapper("kits.kit." + kitName.toLowerCase());
     }
 }

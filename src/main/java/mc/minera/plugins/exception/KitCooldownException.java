@@ -1,21 +1,21 @@
 package mc.minera.plugins.exception;
 
-import mc.minera.plugins.model.KitUnit;
+import java.time.Instant;
 
 public class KitCooldownException extends RuntimeException {
 
-    private final KitUnit unit;
+    private final Instant endOfCooldown;
 
     /**
      *
-     * @param unit the kit unit that was redeemed and is still on cooldown.
+     * @param endOfCooldown when the player will be able to redeem the kit again.
      */
-    public KitCooldownException(KitUnit unit) {
+    public KitCooldownException(Instant endOfCooldown) {
         super("can't redeem a kit while on cooldown");
-        this.unit = unit;
+        this.endOfCooldown = endOfCooldown;
     }
 
-    public KitUnit getUnit() {
-        return unit;
+    public Instant whenAvailable() {
+        return endOfCooldown;
     }
 }

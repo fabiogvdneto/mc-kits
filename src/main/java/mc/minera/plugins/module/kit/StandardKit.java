@@ -1,17 +1,21 @@
 package mc.minera.plugins.module.kit;
 
+import mc.minera.plugins.exception.InventoryFullException;
 import mc.minera.plugins.exception.KitCooldownException;
 import mc.minera.plugins.model.Kit;
-import mc.minera.plugins.model.KitUnit;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.math.BigInteger;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class StandardKit implements Kit {
 
-    private final Map<UUID, KitUnit> units;
+    private final Map<UUID, Instant> availability;
     private final String name;
     private Duration cooldown;
     private BigInteger cost;
@@ -22,7 +26,7 @@ public class StandardKit implements Kit {
         this.cooldown = Duration.ZERO;
         this.cost = BigInteger.ZERO;
         this.contents = new ItemStack[0];
-        this.units = new HashMap<>();
+        this.availability = new HashMap<>();
     }
 
     @Override
@@ -61,31 +65,39 @@ public class StandardKit implements Kit {
     }
 
     @Override
-    public Collection<KitUnit> getAgreements() {
-        return units.values();
+    public void redeem(Player recipient) throws KitCooldownException, InventoryFullException {
+        Instant endOfCooldown = availability.get(recipient.getUniqueId());
+
+        if (endOfCooldown != null && Instant.now().isBefore(endOfCooldown))
+            throw new KitCooldownException(endOfCooldown);
+
+        redeemNow(recipient);
     }
 
     @Override
-    public KitUnit redeemOrThrow(UUID recipient) throws KitCooldownException {
-        KitUnit unit = units.get(recipient);
-
-        if (unit != null && !unit.isDisposable())
-            throw new KitCooldownException(unit);
-
-        unit = new StandardUnit(this, recipient);
-        units.put(recipient, unit);
-        return unit;
+    public void redeemNow(Player recipient) throws InventoryFullException {
+        collect(recipient.getInventory());
+        availability.put(recipient.getUniqueId(), Instant.now().plus(cooldown));
     }
 
     @Override
-    public KitUnit redeemOrGet(UUID recipient) {
-        return units.compute(recipient, (key, value) ->
-            (value == null) || value.isDisposable() ? new StandardUnit(this, key) : value
-        );
+    public void collect(Inventory target) throws InventoryFullException {
+        int[] freeSlots = findFreeSlots(target);
+
+        if (freeSlots.length < contents.length)
+            throw new InventoryFullException(contents.length, freeSlots.length);
+
+        for (int i = 0; i < contents.length; i++) {
+            target.setItem(freeSlots[i], contents[i]);
+        }
     }
 
-    @Override
-    public KitUnit forceRedeem(UUID recipient) {
-        return units.put(recipient, new StandardUnit(this, recipient));
+    private int[] findFreeSlots(Inventory inv) {
+        ItemStack[] storage = inv.getStorageContents();
+
+        return IntStream.range(0, storage.length)
+                .filter(i -> storage[i] == null || storage[i].isEmpty())
+                .limit(contents.length)
+                .toArray();
     }
 }

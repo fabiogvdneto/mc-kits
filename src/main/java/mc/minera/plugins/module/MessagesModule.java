@@ -74,12 +74,10 @@ public class MessagesModule implements KitsModule {
         message("kit.redeemed", target, Placeholder.unparsed("name", kitName));
     }
 
-    public void kitLeftovers(Audience target, String remainder) {
-        message("kit.leftovers", target, Placeholder.unparsed("remainder", remainder));
-    }
-
-    public void kitCollected(Audience target) {
-        message("kit.collected", target);
+    public void kitInventoryFull(Audience target, String spaceRequired, String spaceAvailable) {
+        message("kit.inventory-full", target,
+                Placeholder.unparsed("required", spaceRequired),
+                Placeholder.unparsed("available", spaceAvailable));
     }
 
     public void kitCreated(Audience target, String kitName) {
