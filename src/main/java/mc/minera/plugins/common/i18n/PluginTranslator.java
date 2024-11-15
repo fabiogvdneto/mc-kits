@@ -25,16 +25,6 @@ public class PluginTranslator extends AbstractTranslator {
         translations.clear();
     }
 
-    public void loadTranslations(Plugin plugin, String code, String fallback) {
-        if (fallback != null) {
-            loadTranslations(plugin, fallback);
-        }
-
-        if (!code.equals(fallback)) {
-            loadTranslations(plugin, code);
-        }
-    }
-
     public void loadTranslations(Plugin plugin, String code) {
         String path = pathToFile(code);
         plugin.getLogger().info("Loading message translations (" + path + ")...");

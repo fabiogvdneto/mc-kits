@@ -21,7 +21,8 @@ public class MessagesModule implements KitsModule {
 
     @Override
     public void enable() {
-        translator.loadTranslations(plugin, plugin.getSettings().getLanguage(), "en");
+        translator.loadTranslations(plugin, "en");
+        translator.loadTranslations(plugin, plugin.getSettings().getLanguage());
     }
 
     @Override
