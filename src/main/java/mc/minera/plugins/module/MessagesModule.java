@@ -8,6 +8,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
+import java.io.IOException;
 import java.util.Objects;
 
 public class MessagesModule implements KitsModule {
@@ -21,8 +22,12 @@ public class MessagesModule implements KitsModule {
 
     @Override
     public void enable() {
-        translator.loadTranslations(plugin, "en");
-        translator.loadTranslations(plugin, plugin.getSettings().getLanguage());
+        try {
+            translator.loadTranslations(plugin, "en");
+            translator.loadTranslations(plugin, plugin.getSettings().getLanguage());
+        } catch (IOException e) {
+            plugin.getLogger().warning("An error occurred while trying to load translations.");
+        }
     }
 
     @Override
