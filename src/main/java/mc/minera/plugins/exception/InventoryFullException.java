@@ -6,6 +6,7 @@ public class InventoryFullException extends RuntimeException {
     private final int spaceAvailable;
 
     public InventoryFullException(int spaceRequired, int spaceAvailable) {
+        super("inventory is full");
         this.spaceRequired = spaceRequired;
         this.spaceAvailable = spaceAvailable;
     }

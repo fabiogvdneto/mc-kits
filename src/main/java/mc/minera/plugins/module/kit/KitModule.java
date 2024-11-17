@@ -1,62 +1,150 @@
 package mc.minera.plugins.module.kit;
 
 import mc.minera.plugins.KitsModule;
+import mc.minera.plugins.KitsPlugin;
+import mc.minera.plugins.common.Plugins;
 import mc.minera.plugins.exception.KitAlreadyExistsException;
 import mc.minera.plugins.exception.KitNotFoundException;
 import mc.minera.plugins.model.Kit;
 import mc.minera.plugins.model.KitManager;
+import mc.minera.plugins.repository.KitRepository;
+import mc.minera.plugins.repository.data.KitData;
+import mc.minera.plugins.repository.java.JavaKitRepository;
+import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class KitModule implements KitManager, KitsModule {
 
-    private final Map<String, Kit> kitByName = new HashMap<>();
+    private final KitsPlugin plugin;
+    private final KitRepository repository;
+    private final Map<String, Kit> cache = new HashMap<>();
+
+    private BukkitTask autosave;
+
+    public KitModule(KitsPlugin plugin) {
+        this.plugin = Objects.requireNonNull(plugin);
+        this.repository = new JavaKitRepository(plugin.getLogger(), plugin.getDataPath().resolve("kits"));
+    }
 
     @Override
     public Kit create(String name) throws KitAlreadyExistsException {
-        name = name.toLowerCase();
-
-        if (kitByName.containsKey(name))
-            throw new KitAlreadyExistsException();
+        if (exists(name))
+            throw new KitAlreadyExistsException(name);
 
         Kit kit = new StandardKit(name);
-        kitByName.put(name, kit);
+        cache.put(key(name), kit);
         return kit;
     }
 
     @Override
     public Kit get(String name) throws KitNotFoundException {
-        Kit kit = kitByName.get(name.toLowerCase());
+        Kit kit = cache.get(key(name));
 
         if (kit == null)
-            throw new KitNotFoundException();
+            throw new KitNotFoundException(name);
 
         return kit;
     }
 
     @Override
     public Kit delete(String name) throws KitNotFoundException {
-        Kit kit = kitByName.remove(name.toLowerCase());
+        // Replace the value by null instead of removing it,
+        // so that it can be deleted from the repository later.
+        Kit kit = cache.put(key(name), null);
 
         if (kit == null)
-            throw new KitNotFoundException();
+            throw new KitNotFoundException(name);
 
         return kit;
     }
 
     @Override
-    public boolean contains(String name) {
-        return kitByName.containsKey(name.toLowerCase());
+    public boolean exists(String name) {
+        return cache.get(key(name)) != null;
     }
 
     @Override
     public void enable() {
+        disable();
+        load();
 
+        long autosaveMinutes = (long) plugin.getSettings().getKitAutosaveMinutes() * 60 * 20;
+        this.autosave = Plugins.sync(plugin, this::saveAsync, autosaveMinutes, autosaveMinutes);
     }
 
     @Override
     public void disable() {
+        if (autosave != null) {
+            autosave.cancel();
+            autosave = null;
+            save();
+            cache.clear();
+        }
+    }
 
+    private String key(String name) {
+        return name.toLowerCase();
+    }
+
+    private String key(Kit kit) {
+        return key(kit.getName());
+    }
+
+    /* ---- Repository Operations ---- */
+
+    private void load() {
+        plugin.getLogger().info("Loading kits from repository...");
+
+        for (KitData data : repository) {
+            if (data != null) {
+                StandardKit kit = new StandardKit(data);
+                cache.put(key(kit), kit);
+            }
+        }
+    }
+
+    private void save() {
+        plugin.getLogger().info("Saving kits to repository...");
+
+        Iterator<Map.Entry<String, Kit>> it = cache.entrySet().iterator();
+
+        while (it.hasNext()) {
+            Map.Entry<String, Kit> next = it.next();
+
+            if (next.getValue() == null) {
+                repository.deleteOne(next.getKey());
+                it.remove();
+                continue;
+            }
+
+            StandardKit kit = (StandardKit) next.getValue();
+            kit.purge();
+            repository.storeOne(kit.memento());
+        }
+    }
+
+    private void saveAsync() {
+        plugin.getLogger().info("Saving kits to repository...");
+
+        Map<String, Kit> data = Map.copyOf(cache);
+
+        Plugins.async(plugin, () -> {
+            List<String> deleted = new LinkedList<>();
+
+            for (Map.Entry<String, Kit> entry : data.entrySet()) {
+                if (entry.getValue() == null) {
+                    repository.deleteOne(entry.getKey());
+                    deleted.add(entry.getKey());
+                    continue;
+                }
+
+                StandardKit kit = (StandardKit) entry.getValue();
+                kit.purge();
+                repository.storeOne(kit.memento());
+            }
+
+            Plugins.sync(plugin, () -> deleted.forEach(cache::remove));
+        });
     }
 }

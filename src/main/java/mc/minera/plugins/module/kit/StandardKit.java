@@ -3,30 +3,40 @@ package mc.minera.plugins.module.kit;
 import mc.minera.plugins.exception.InventoryFullException;
 import mc.minera.plugins.exception.KitCooldownException;
 import mc.minera.plugins.model.Kit;
+import mc.minera.plugins.repository.data.KitData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
-public class StandardKit implements Kit {
+class StandardKit implements Kit {
 
     private final Map<UUID, Instant> availability;
     private final String name;
     private Duration cooldown;
-    private BigInteger cost;
+    private long price;
     private ItemStack[] contents;
 
-    public StandardKit(String name) {
+    StandardKit(String name) {
         this.name = Objects.requireNonNull(name);
         this.cooldown = Duration.ZERO;
-        this.cost = BigInteger.ZERO;
         this.contents = new ItemStack[0];
         this.availability = new HashMap<>();
+    }
+
+    StandardKit(KitData data) {
+        this.name = data.name();
+        this.cooldown = data.cooldown();
+        this.price = data.price();
+        this.contents = ItemStack.deserializeItemsFromBytes(data.contents());
+        this.availability = new HashMap<>(data.availability());
     }
 
     @Override
@@ -40,8 +50,8 @@ public class StandardKit implements Kit {
     }
 
     @Override
-    public BigInteger getCost() {
-        return cost;
+    public long getPrice() {
+        return price;
     }
 
     @Override
@@ -55,8 +65,8 @@ public class StandardKit implements Kit {
     }
 
     @Override
-    public void setCost(BigInteger cost) {
-        this.cost = Objects.requireNonNull(cost);
+    public void setPrice(long price) {
+        this.price = Math.max(0, price);
     }
 
     @Override
@@ -99,5 +109,14 @@ public class StandardKit implements Kit {
                 .filter(i -> storage[i] == null || storage[i].isEmpty())
                 .limit(contents.length)
                 .toArray();
+    }
+
+    void purge() {
+        availability.values().removeIf(Instant.now()::isAfter);
+    }
+
+    KitData memento() {
+        byte[] contentsNBT = ItemStack.serializeItemsAsBytes(this.contents);
+        return new KitData(name, cooldown, price, contentsNBT, Map.copyOf(availability));
     }
 }

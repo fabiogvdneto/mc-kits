@@ -36,6 +36,10 @@ public class SettingsModule implements KitsModule {
         return config().getString("lang");
     }
 
+    public int getKitAutosaveMinutes() {
+        return config().getInt("kit.autosave-minutes");
+    }
+
     /* ---- Permissions ---- */
 
     public PermissionWrapper getCommandPermission(Command cmd) {

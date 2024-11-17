@@ -13,7 +13,7 @@ public class KitsPlugin extends JavaPlugin {
 
     private final SettingsModule settings = new SettingsModule(this);
     private final MessagesModule messages = new MessagesModule(this);
-    private final KitModule kits = new KitModule();
+    private final KitModule kits = new KitModule(this);
 
     @Override
     public void onEnable() {

@@ -1,5 +1,13 @@
 package mc.minera.plugins.exception;
 
-public class PlayerNotFoundException extends RuntimeException {
+import java.util.UUID;
 
+public class PlayerNotFoundException extends RuntimeException {
+    public PlayerNotFoundException(String name) {
+        super("could't find a player with the name " + name);
+    }
+
+    public PlayerNotFoundException(UUID uid) {
+        super("couldn't find a player with the uuid " + uid);
+    }
 }

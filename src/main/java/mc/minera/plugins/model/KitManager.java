@@ -5,12 +5,12 @@ import mc.minera.plugins.exception.KitNotFoundException;
 
 public interface KitManager {
 
-    Kit create(String name) throws KitAlreadyExistsException;
-
     Kit get(String name) throws KitNotFoundException;
+
+    Kit create(String name) throws KitAlreadyExistsException;
 
     Kit delete(String name) throws KitNotFoundException;
 
-    boolean contains(String name);
+    boolean exists(String name);
 
 }

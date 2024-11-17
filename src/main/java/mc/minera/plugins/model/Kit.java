@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.math.BigInteger;
 import java.time.Duration;
 
 public interface Kit {
@@ -15,13 +14,13 @@ public interface Kit {
 
     Duration getCooldown();
 
-    BigInteger getCost();
+    long getPrice();
 
     ItemStack[] getContents();
 
     void setCooldown(Duration cooldown);
 
-    void setCost(BigInteger cost);
+    void setPrice(long price);
 
     void setContents(ItemStack[] contents);
 
