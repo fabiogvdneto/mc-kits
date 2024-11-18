@@ -24,7 +24,7 @@ public class KitModule implements KitManager, KitsModule {
 
     public KitModule(KitsPlugin plugin) {
         this.plugin = Objects.requireNonNull(plugin);
-        this.repository = new JavaKitRepository(plugin.getLogger(), plugin.getDataPath().resolve("kits"));
+        this.repository = new JavaKitRepository(plugin.getDataPath().resolve("kits"));
     }
 
     @Override
@@ -94,38 +94,54 @@ public class KitModule implements KitManager, KitsModule {
     /* ---- Repository Operations ---- */
 
     private void load() {
-        plugin.getLogger().info("Loading kits from repository...");
+        try {
+            plugin.getLogger().info("Loading kits...");
+            for (String key : repository.fetchKeys()) {
+                KitData data = repository.fetchOne(key);
 
-        for (KitData data : repository) {
-            if (data != null) {
-                StandardKit kit = new StandardKit(data);
-                cache.put(key(kit), kit);
+                if (data != null) {
+                    StandardKit kit = new StandardKit(data);
+                    cache.put(key(kit), kit);
+                }
             }
+        } catch (Exception e) {
+            plugin.getLogger().warning("An error occurred while trying to load kits.");
+            plugin.getLogger().warning(e.getMessage());
         }
     }
 
     private void save() {
-        plugin.getLogger().info("Saving kits to repository...");
+        plugin.getLogger().info("Saving kits...");
 
         Iterator<Map.Entry<String, Kit>> it = cache.entrySet().iterator();
 
         while (it.hasNext()) {
-            Map.Entry<String, Kit> next = it.next();
+            Map.Entry<String, Kit> entry = it.next();
 
-            if (next.getValue() == null) {
-                repository.deleteOne(next.getKey());
+            if (entry.getValue() == null) {
+                try {
+                    repository.deleteOne(entry.getKey());
+                } catch (Exception e) {
+                    plugin.getLogger().warning("An error occurred while trying to delete a kit.");
+                    plugin.getLogger().warning(e.getMessage());
+                }
                 it.remove();
                 continue;
             }
 
-            StandardKit kit = (StandardKit) next.getValue();
+            StandardKit kit = (StandardKit) entry.getValue();
             kit.purge();
-            repository.storeOne(kit.memento());
+            try {
+                repository.storeOne(kit.memento());
+            } catch (Exception e) {
+                plugin.getLogger().warning("An error occurred while trying to save a kit.");
+                plugin.getLogger().warning(e.getMessage());
+            }
         }
     }
 
     private void saveAsync() {
-        plugin.getLogger().info("Saving kits to repository...");
+        plugin.getLogger().info("Saving kits...");
 
         Map<String, Kit> data = Map.copyOf(cache);
 
@@ -134,14 +150,24 @@ public class KitModule implements KitManager, KitsModule {
 
             for (Map.Entry<String, Kit> entry : data.entrySet()) {
                 if (entry.getValue() == null) {
-                    repository.deleteOne(entry.getKey());
+                    try {
+                        repository.deleteOne(entry.getKey());
+                    } catch (Exception e) {
+                        plugin.getLogger().warning("An error occurred while trying to delete a kit.");
+                        plugin.getLogger().warning(e.getMessage());
+                    }
                     deleted.add(entry.getKey());
                     continue;
                 }
 
                 StandardKit kit = (StandardKit) entry.getValue();
                 kit.purge();
-                repository.storeOne(kit.memento());
+                try {
+                    repository.storeOne(kit.memento());
+                } catch (Exception e) {
+                    plugin.getLogger().warning("An error occurred while trying to save a kit.");
+                    plugin.getLogger().warning(e.getMessage());
+                }
             }
 
             Plugins.sync(plugin, () -> deleted.forEach(cache::remove));
