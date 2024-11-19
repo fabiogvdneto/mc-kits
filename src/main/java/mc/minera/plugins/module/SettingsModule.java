@@ -37,7 +37,7 @@ public class SettingsModule implements KitsModule {
     }
 
     public int getKitAutosaveMinutes() {
-        return config().getInt("kit.autosave-minutes");
+        return config().getInt("kits.autosave-minutes");
     }
 
     /* ---- Permissions ---- */

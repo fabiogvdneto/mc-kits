@@ -13,12 +13,12 @@ public class JavaKitRepository extends AbstractJavaKeyedRepository<String, KitDa
     }
 
     @Override
-    protected String dataToKey(KitData data) {
+    protected String getKey(KitData data) {
         return data.name().toLowerCase();
     }
 
     @Override
-    public String filenameToKey(String id) {
+    public String getKeyFromString(String id) {
         return id;
     }
 }
