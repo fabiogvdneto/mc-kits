@@ -15,9 +15,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class CreatekitCommand extends CommandHandler<KitsPlugin> {
+public class CommandCreatekit extends CommandHandler<KitsPlugin> {
 
-    public CreatekitCommand(KitsPlugin plugin) {
+    public CommandCreatekit(KitsPlugin plugin) {
         super(plugin);
     }
 

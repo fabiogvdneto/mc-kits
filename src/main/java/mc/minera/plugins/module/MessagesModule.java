@@ -4,11 +4,13 @@ import mc.minera.plugins.KitsModule;
 import mc.minera.plugins.KitsPlugin;
 import mc.minera.plugins.common.i18n.PluginTranslator;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Objects;
 
 public class MessagesModule implements KitsModule {
@@ -35,10 +37,12 @@ public class MessagesModule implements KitsModule {
         translator.clearTranslations();
     }
 
+    private Component translate(String key) {
+        return MiniMessage.miniMessage().deserialize(translator.get(key));
+    }
+
     private void message(String key, Audience target) {
-        target.sendMessage(
-                MiniMessage.miniMessage().deserialize(translator.get(key))
-        );
+        target.sendMessage(translate(key));
     }
 
     private void message(String key, Audience target, TagResolver resolver) {
@@ -107,5 +111,16 @@ public class MessagesModule implements KitsModule {
 
     public void kitInsufficientMoney(Audience target, String cost) {
         message("kit.insufficient-money", target, Placeholder.unparsed("cost", cost));
+    }
+
+    public void kitListEmpty(Audience target) {
+        message("kit.list.empty", target);
+    }
+
+    public void kitList(Audience target, Collection<String> kits) {
+        Component separator = translate("kit.list.separator");
+        Component list = kits.stream().map(Component::text).collect(Component.toComponent(separator));
+
+        message("kit.list.base", target, Placeholder.component("list", list));
     }
 }

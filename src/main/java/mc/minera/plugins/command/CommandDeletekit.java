@@ -9,9 +9,9 @@ import mc.minera.plugins.model.Kit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-public class DeletekitCommand extends CommandHandler<KitsPlugin> {
+public class CommandDeletekit extends CommandHandler<KitsPlugin> {
 
-    public DeletekitCommand(KitsPlugin plugin) {
+    public CommandDeletekit(KitsPlugin plugin) {
         super(plugin);
     }
 

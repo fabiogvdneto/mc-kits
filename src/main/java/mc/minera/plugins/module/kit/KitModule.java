@@ -12,10 +12,7 @@ import mc.minera.plugins.repository.data.KitData;
 import mc.minera.plugins.repository.java.JavaKitRepository;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class KitModule implements KitManager, KitsModule {
 
@@ -30,15 +27,8 @@ public class KitModule implements KitManager, KitsModule {
     }
 
     @Override
-    public Kit create(String name) throws KitAlreadyExistsException {
-        String key = getKeyFromName(name);
-
-        if (cache.get(key) != null)
-            throw new KitAlreadyExistsException(name);
-
-        Kit kit = new StandardKit(name);
-        cache.put(key, kit);
-        return kit;
+    public Collection<Kit> getAll() {
+        return cache.values();
     }
 
     @Override
@@ -48,6 +38,18 @@ public class KitModule implements KitManager, KitsModule {
         if (kit == null)
             throw new KitNotFoundException(name);
 
+        return kit;
+    }
+
+    @Override
+    public Kit create(String name) throws KitAlreadyExistsException {
+        String key = getKeyFromName(name);
+
+        if (cache.get(key) != null)
+            throw new KitAlreadyExistsException(name);
+
+        Kit kit = new StandardKit(name);
+        cache.put(key, kit);
         return kit;
     }
 

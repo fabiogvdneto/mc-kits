@@ -16,9 +16,9 @@ import org.bukkit.entity.Player;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-public class KitCommand extends CommandHandler<KitsPlugin> {
+public class CommandKit extends CommandHandler<KitsPlugin> {
 
-    public KitCommand(KitsPlugin plugin) {
+    public CommandKit(KitsPlugin plugin) {
         super(plugin);
     }
 
@@ -30,8 +30,6 @@ public class KitCommand extends CommandHandler<KitsPlugin> {
             requireArguments(args, 1);
 
             Kit kit = plugin.getKits().get(args[0]);
-
-            if (args.length > 1 && checkSubcommand(sender, args, kit)) return;
 
             plugin.getSettings().getKitPermission(kit.getName()).require(sender);
 
@@ -55,28 +53,6 @@ public class KitCommand extends CommandHandler<KitsPlugin> {
             String required = Integer.toString(e.getSpaceRequired());
             String available = Integer.toString(e.getSpaceAvailable());
             plugin.getMessages().kitInventoryFull(sender, required, available);
-        }
-    }
-
-    private boolean checkSubcommand(CommandSender sender, String[] args, Kit kit) {
-        switch (args[1]) {
-            case "edit":
-                // TODO
-                return true;
-            case "setcooldown":
-                // TODO
-                return true;
-            case "getcooldown":
-                // TODO
-                return true;
-            case "setprice":
-                // TODO
-                return true;
-            case "getprice":
-                // TODO
-                return true;
-            default:
-                return false;
         }
     }
 }
