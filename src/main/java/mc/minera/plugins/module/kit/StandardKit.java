@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 
 class StandardKit implements Kit {
 
-    private final Map<UUID, Instant> availability;
+    private final Map<UUID, Instant> cooldownMap;
     private final String name;
     private Duration cooldown;
     private long price;
@@ -28,7 +28,7 @@ class StandardKit implements Kit {
         this.name = Objects.requireNonNull(name);
         this.cooldown = Duration.ZERO;
         this.contents = new ItemStack[0];
-        this.availability = new HashMap<>();
+        this.cooldownMap = new HashMap<>();
     }
 
     StandardKit(KitData data) {
@@ -36,7 +36,9 @@ class StandardKit implements Kit {
         this.cooldown = data.cooldown();
         this.price = data.price();
         this.contents = ItemStack.deserializeItemsFromBytes(data.contents());
-        this.availability = new HashMap<>(data.availability());
+        this.cooldownMap = new HashMap<>(data.availability());
+
+        purgeCooldown();
     }
 
     @Override
@@ -74,32 +76,38 @@ class StandardKit implements Kit {
         this.contents = Objects.requireNonNull(contents);
     }
 
-    @Override
-    public void redeem(Player recipient) throws KitCooldownException, InventoryFullException {
-        Instant endOfCooldown = availability.get(recipient.getUniqueId());
-
-        if (endOfCooldown != null && Instant.now().isBefore(endOfCooldown))
-            throw new KitCooldownException(endOfCooldown);
-
-        redeemNow(recipient);
+    private void applyCooldown(UUID recipient) {
+        cooldownMap.put(recipient, Instant.now().plus(cooldown));
     }
 
     @Override
-    public void redeemNow(Player recipient) throws InventoryFullException {
-        collect(recipient.getInventory());
-        availability.put(recipient.getUniqueId(), Instant.now().plus(cooldown));
-    }
-
-    @Override
-    public void collect(Inventory target) throws InventoryFullException {
-        int[] freeSlots = findFreeSlots(target);
+    public void collect(Inventory recipient) throws InventoryFullException {
+        int[] freeSlots = findFreeSlots(recipient);
 
         if (freeSlots.length < contents.length)
             throw new InventoryFullException(contents.length, freeSlots.length);
 
         for (int i = 0; i < contents.length; i++) {
-            target.setItem(freeSlots[i], contents[i]);
+            recipient.setItem(freeSlots[i], contents[i]);
         }
+    }
+
+    @Override
+    public void redeemNow(Player recipient) throws InventoryFullException {
+        collect(recipient.getInventory());
+        applyCooldown(recipient.getUniqueId());
+    }
+
+    @Override
+    public void redeem(Player recipient) throws KitCooldownException, InventoryFullException {
+        Instant endOfCooldown = cooldownMap.computeIfPresent(recipient.getUniqueId(),
+                // Remove the cooldown if it has already ended.
+                (key, value) -> Instant.now().isBefore(value) ? value : null);
+
+        if (endOfCooldown != null)
+            throw new KitCooldownException(endOfCooldown);
+
+        redeemNow(recipient);
     }
 
     private int[] findFreeSlots(Inventory inv) {
@@ -111,12 +119,13 @@ class StandardKit implements Kit {
                 .toArray();
     }
 
-    void purge() {
-        availability.values().removeIf(Instant.now()::isAfter);
+    void purgeCooldown() {
+        cooldownMap.values().removeIf(Instant.now()::isAfter);
     }
 
     KitData memento() {
+        purgeCooldown();
         byte[] contentsNBT = ItemStack.serializeItemsAsBytes(this.contents);
-        return new KitData(name, cooldown, price, contentsNBT, Map.copyOf(availability));
+        return new KitData(name, cooldown, price, contentsNBT, Map.copyOf(cooldownMap));
     }
 }

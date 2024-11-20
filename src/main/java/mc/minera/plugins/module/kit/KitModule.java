@@ -12,14 +12,14 @@ import mc.minera.plugins.repository.data.KitData;
 import mc.minera.plugins.repository.java.JavaKitRepository;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class KitModule implements KitManager, KitsModule {
 
     private final KitsPlugin plugin;
     private final Map<String, Kit> cache = new HashMap<>();
-    private final ConcurrentSkipListSet<String> toDelete = new ConcurrentSkipListSet<>();
 
     private KitRepository repository;
     private BukkitTask autosaveTask;
@@ -30,14 +30,13 @@ public class KitModule implements KitManager, KitsModule {
 
     @Override
     public Kit create(String name) throws KitAlreadyExistsException {
-        if (exists(name))
+        String key = getKeyFromName(name);
+
+        if (cache.get(key) != null)
             throw new KitAlreadyExistsException(name);
 
-        String key = getKeyFromName(name);
         Kit kit = new StandardKit(name);
-
         cache.put(key, kit);
-        toDelete.remove(key);
         return kit;
     }
 
@@ -56,13 +55,12 @@ public class KitModule implements KitManager, KitsModule {
         // Replace the value by null instead of removing it,
         // so that it can be deleted from the repository later.
         String key = getKeyFromName(name);
-        Kit kit = cache.remove(key);
+        Kit removed = cache.put(key, null);
 
-        if (kit == null)
+        if (removed == null)
             throw new KitNotFoundException(name);
 
-        toDelete.add(key);
-        return kit;
+        return removed;
     }
 
     @Override
@@ -89,22 +87,17 @@ public class KitModule implements KitManager, KitsModule {
         }
     }
 
-    private void autosave() {
-        long autosaveMinutes = (long) plugin.getSettings().getKitAutosaveMinutes() * 60 * 20;
-        this.autosaveTask = Plugins.sync(plugin, this::saveAsync, autosaveMinutes, autosaveMinutes);
-    }
-
     @Override
     public void disable() {
         if (autosaveTask != null) {
             autosaveTask.cancel();
             autosaveTask = null;
-            save(cache);
+            save(memento());
             cache.clear();
         }
     }
 
-    /* ---- Repository Operations ---- */
+    /* ---- Persistence ---- */
 
     private void load() {
         try {
@@ -118,35 +111,31 @@ public class KitModule implements KitManager, KitsModule {
         }
     }
 
-    private void save(Map<String, Kit> data) {
+    private void save(Map<String, KitData> data) {
         int successCount = 0;
         int errorCount = 0;
 
-        // 1. Delete data from repository.
-
-        Iterator<String> it = toDelete.iterator();
-        while (it.hasNext()) {
-            try {
-                repository.deleteOne(it.next());
-                it.remove();
-                successCount++;
-            } catch (Exception e) {
-                plugin.getLogger().warning("Could not delete a kit.");
-                plugin.getLogger().warning(e.getMessage());
-                errorCount++;
-            }
-        }
-
-        // 2. Store data to the repository.
-
-        for (Kit kit : data.values()) {
-            try {
-                repository.storeOne(((StandardKit) kit).memento());
-                successCount++;
-            } catch (Exception e) {
-                plugin.getLogger().warning("Could not delete a kit.");
-                plugin.getLogger().warning(e.getMessage());
-                errorCount++;
+        for (Map.Entry<String, KitData> entry : data.entrySet()) {
+            if (entry.getValue() == null) {
+                // Delete from the repository.
+                try {
+                    repository.deleteOne(entry.getKey());
+                    successCount++;
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Could not delete a kit.");
+                    plugin.getLogger().warning(e.getMessage());
+                    errorCount++;
+                }
+            } else {
+                // Store to the repository.
+                try {
+                    repository.storeOne(entry.getValue());
+                    successCount++;
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Could not delete a kit.");
+                    plugin.getLogger().warning(e.getMessage());
+                    errorCount++;
+                }
             }
         }
 
@@ -154,9 +143,13 @@ public class KitModule implements KitManager, KitsModule {
     }
 
     private void saveAsync() {
-        plugin.getLogger().info("Saving kits...");
-        Map<String, Kit> snapshot = Map.copyOf(cache);
-        Plugins.async(plugin, () -> save(snapshot));
+        Map<String, KitData> data = memento();
+        Plugins.async(plugin, () -> save(data));
+    }
+
+    private void autosave() {
+        long autosaveMinutes = (long) plugin.getSettings().getKitAutosaveMinutes() * 60 * 20;
+        this.autosaveTask = Plugins.sync(plugin, this::saveAsync, autosaveMinutes, autosaveMinutes);
     }
 
     /* ---- Utilities ---- */
@@ -167,5 +160,19 @@ public class KitModule implements KitManager, KitsModule {
 
     private String getKey(KitData data) {
         return data.name().toLowerCase();
+    }
+
+    private Map<String, KitData> memento() {
+        Map<String, KitData> data = new HashMap<>();
+
+        for (Map.Entry<String, Kit> entry : cache.entrySet()) {
+            if (entry.getValue() == null) {
+                data.put(entry.getKey(), null);
+            } else {
+                data.put(entry.getKey(), ((StandardKit) entry.getValue()).memento());
+            }
+        }
+
+        return data;
     }
 }

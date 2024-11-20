@@ -24,10 +24,10 @@ public interface Kit {
 
     void setContents(ItemStack[] contents);
 
-    void redeem(Player recipient) throws KitCooldownException, InventoryFullException;
+    void collect(Inventory target) throws InventoryFullException;
 
     void redeemNow(Player recipient) throws InventoryFullException;
 
-    void collect(Inventory target) throws InventoryFullException;
+    void redeem(Player recipient) throws KitCooldownException, InventoryFullException;
 
 }
