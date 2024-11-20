@@ -90,12 +90,14 @@ public class KitModule implements KitManager, KitsModule {
 
     @Override
     public void disable() {
-        if (autosaveTask != null) {
-            autosaveTask.cancel();
-            autosaveTask = null;
-            save(memento());
-            cache.clear();
-        }
+        if (repository == null) return;
+
+        autosaveTask.cancel();
+        save(memento());
+        cache.clear();
+
+        this.autosaveTask = null;
+        this.repository = null;
     }
 
     /* ---- Persistence ---- */
