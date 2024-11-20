@@ -13,6 +13,7 @@ import mc.minera.plugins.repository.java.JavaKitRepository;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -168,10 +169,17 @@ public class KitModule implements KitManager, KitsModule {
     private Map<String, KitData> memento() {
         Map<String, KitData> data = new HashMap<>();
 
-        for (Map.Entry<String, Kit> entry : cache.entrySet()) {
+        Iterator<Map.Entry<String, Kit>> it = cache.entrySet().iterator();
+
+        while (it.hasNext()) {
+            Map.Entry<String, Kit> entry = it.next();
+
             if (entry.getValue() == null) {
+                // Null values represent data that was removed and must be deleted from the repository.
                 data.put(entry.getKey(), null);
+                it.remove();
             } else {
+                // The remaining values must be stored in the repository.
                 data.put(entry.getKey(), ((StandardKit) entry.getValue()).memento());
             }
         }
