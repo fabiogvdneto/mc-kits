@@ -148,8 +148,11 @@ public class KitModule implements KitManager, KitsModule {
     }
 
     private void autosave() {
-        long autosaveMinutes = (long) plugin.getSettings().getKitAutosaveMinutes() * 60 * 20;
-        this.autosaveTask = Plugins.sync(plugin, this::saveAsync, autosaveMinutes, autosaveMinutes);
+        long minutes = (long) plugin.getSettings().getKitAutosaveMinutes() * 60 * 20;
+
+        if (minutes > 0) {
+            this.autosaveTask = Plugins.sync(plugin, this::saveAsync, minutes, minutes);
+        }
     }
 
     /* ---- Utilities ---- */
