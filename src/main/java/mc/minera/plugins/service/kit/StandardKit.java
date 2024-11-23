@@ -1,4 +1,4 @@
-package mc.minera.plugins.module.kit;
+package mc.minera.plugins.service.kit;
 
 import mc.minera.plugins.exception.InventoryFullException;
 import mc.minera.plugins.exception.KitCooldownException;

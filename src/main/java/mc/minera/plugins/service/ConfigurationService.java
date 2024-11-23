@@ -1,6 +1,6 @@
-package mc.minera.plugins.module;
+package mc.minera.plugins.service;
 
-import mc.minera.plugins.KitsModule;
+import mc.minera.plugins.common.PluginService;
 import mc.minera.plugins.KitsPlugin;
 import mc.minera.plugins.common.PermissionWrapper;
 import org.bukkit.command.Command;
@@ -8,11 +8,11 @@ import org.bukkit.configuration.Configuration;
 
 import java.util.Objects;
 
-public class SettingsModule implements KitsModule {
+public class ConfigurationService implements PluginService {
 
     private final KitsPlugin plugin;
 
-    public SettingsModule(KitsPlugin plugin) {
+    public ConfigurationService(KitsPlugin plugin) {
         this.plugin = Objects.requireNonNull(plugin);
     }
 

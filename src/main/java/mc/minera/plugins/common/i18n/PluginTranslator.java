@@ -27,20 +27,25 @@ public class PluginTranslator extends AbstractTranslator {
         translations.clear();
     }
 
-    public void loadTranslations(Plugin plugin, String code) throws IOException {
+    public void loadTranslations(Plugin plugin, String code) {
         if (this.code.equals(code)) return;
 
         String path = pathToFile(code);
-        Configuration config = Plugins.loadConfiguration(plugin, path);
 
-        for (Map.Entry<String, Object> entry : config.getValues(true).entrySet()) {
-            if (entry.getValue().getClass() == String.class) {
-                translations.put(entry.getKey(), (String) entry.getValue());
+        try {
+            Configuration config = Plugins.loadConfiguration(plugin, path);
+
+            for (Map.Entry<String, Object> entry : config.getValues(true).entrySet()) {
+                if (entry.getValue().getClass() == String.class) {
+                    translations.put(entry.getKey(), (String) entry.getValue());
+                }
             }
-        }
 
-        plugin.getLogger().info("Loaded message translations (" + path + ").");
-        this.code = code;
+            plugin.getLogger().info("Loaded message translations (" + path + ").");
+            this.code = code;
+        } catch (IOException e) {
+            plugin.getLogger().warning("Error loading message translations (" + path + ").");
+        }
     }
 
     private String pathToFile(String code) {

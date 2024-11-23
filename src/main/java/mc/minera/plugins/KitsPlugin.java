@@ -5,16 +5,16 @@ import mc.minera.plugins.command.CommandDeletekit;
 import mc.minera.plugins.command.CommandKit;
 import mc.minera.plugins.command.CommandKits;
 import mc.minera.plugins.model.KitManager;
-import mc.minera.plugins.module.SettingsModule;
-import mc.minera.plugins.module.MessagesModule;
-import mc.minera.plugins.module.kit.KitModule;
+import mc.minera.plugins.service.ConfigurationService;
+import mc.minera.plugins.service.MessageService;
+import mc.minera.plugins.service.kit.KitService;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class KitsPlugin extends JavaPlugin {
 
-    private final SettingsModule settings = new SettingsModule(this);
-    private final MessagesModule messages = new MessagesModule(this);
-    private final KitModule kits = new KitModule(this);
+    private final ConfigurationService settings = new ConfigurationService(this);
+    private final MessageService messages = new MessageService(this);
+    private final KitService kits = new KitService(this);
 
     @Override
     public void onEnable() {
@@ -39,11 +39,11 @@ public class KitsPlugin extends JavaPlugin {
         kits.disable();
     }
 
-    public SettingsModule getSettings() {
+    public ConfigurationService getSettings() {
         return settings;
     }
 
-    public MessagesModule getMessages() {
+    public MessageService getMessages() {
         return messages;
     }
 

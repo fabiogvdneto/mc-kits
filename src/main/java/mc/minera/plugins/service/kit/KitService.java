@@ -1,6 +1,6 @@
-package mc.minera.plugins.module.kit;
+package mc.minera.plugins.service.kit;
 
-import mc.minera.plugins.KitsModule;
+import mc.minera.plugins.common.PluginService;
 import mc.minera.plugins.KitsPlugin;
 import mc.minera.plugins.common.Plugins;
 import mc.minera.plugins.exception.KitAlreadyExistsException;
@@ -14,7 +14,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
-public class KitModule implements KitManager, KitsModule {
+public class KitService implements KitManager, PluginService {
 
     private final KitsPlugin plugin;
     private final Map<String, Kit> cache = new HashMap<>();
@@ -22,7 +22,7 @@ public class KitModule implements KitManager, KitsModule {
     private KitRepository repository;
     private BukkitTask autosaveTask;
 
-    public KitModule(KitsPlugin plugin) {
+    public KitService(KitsPlugin plugin) {
         this.plugin = Objects.requireNonNull(plugin);
     }
 

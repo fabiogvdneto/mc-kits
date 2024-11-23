@@ -1,7 +1,7 @@
-package mc.minera.plugins.module;
+package mc.minera.plugins.service;
 
-import mc.minera.plugins.KitsModule;
 import mc.minera.plugins.KitsPlugin;
+import mc.minera.plugins.common.PluginService;
 import mc.minera.plugins.common.i18n.PluginTranslator;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -9,27 +9,24 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Objects;
 
-public class MessagesModule implements KitsModule {
+public class MessageService implements PluginService {
+
+    private static final String DEFAULT_LANGUAGE = "en";
 
     private final KitsPlugin plugin;
     private final PluginTranslator translator = new PluginTranslator();
 
-    public MessagesModule(KitsPlugin plugin) {
+    public MessageService(KitsPlugin plugin) {
         this.plugin = Objects.requireNonNull(plugin);
     }
 
     @Override
     public void enable() {
-        try {
-            translator.loadTranslations(plugin, "en");
-            translator.loadTranslations(plugin, plugin.getSettings().getLanguage());
-        } catch (IOException e) {
-            plugin.getLogger().warning("An error occurred while trying to load translations.");
-        }
+        translator.loadTranslations(plugin, DEFAULT_LANGUAGE);
+        translator.loadTranslations(plugin, plugin.getSettings().getLanguage());
     }
 
     @Override
